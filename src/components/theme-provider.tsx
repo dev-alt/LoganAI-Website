@@ -34,52 +34,89 @@ export function ThemeProvider({
                                   disableTransitionOnChange = true,
                                   ...props
                               }: ThemeProviderProps) {
-    const [theme, setTheme] = React.useState<Theme>(
-        () => (localStorage?.getItem(storageKey) as Theme) || defaultTheme
-    );
+    const [mounted, setMounted] = React.useState(false);
+    const [theme, setTheme] = React.useState<Theme>(defaultTheme);
 
+    // Get initial theme from localStorage when component mounts
     React.useEffect(() => {
+        const savedTheme = localStorage?.getItem(storageKey) as Theme;
+        if (savedTheme) {
+            setTheme(savedTheme);
+        }
+        setMounted(true);
+    }, [storageKey]);
+
+    // Handle transitions
+    React.useEffect(() => {
+        if (!mounted) return;
+
         const root = window.document.documentElement;
+        if (disableTransitionOnChange) {
+            root.classList.add('disable-transitions');
+            const cleanup = () => {
+                root.classList.remove('disable-transitions');
+            };
+            return cleanup;
+        }
+    }, [disableTransitionOnChange, mounted]);
 
-        // Remove old classes
-        root.classList.remove('light', 'dark');
+    // Handle theme changes
+    React.useEffect(() => {
+        if (!mounted) return;
 
-        // Add new class based on theme
-        if (theme === 'system') {
-            const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
-                .matches
+        const root = window.document.documentElement;
+        root.removeAttribute(attribute);
+
+        let currentTheme = theme;
+
+        if (currentTheme === 'system' && enableSystem) {
+            const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
                 ? 'dark'
                 : 'light';
-            root.classList.add(systemTheme);
-        } else {
-            root.classList.add(theme);
+            currentTheme = systemTheme;
         }
-    }, [theme]);
+
+        root.classList.remove('light', 'dark');
+        root.classList.add(currentTheme);
+        root.setAttribute(attribute, currentTheme);
+    }, [theme, attribute, enableSystem, mounted]);
 
     // Watch for system theme changes
     React.useEffect(() => {
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        if (!mounted || !enableSystem) return;
 
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
         const handleChange = () => {
             if (theme === 'system') {
                 const root = window.document.documentElement;
+                const systemTheme = mediaQuery.matches ? 'dark' : 'light';
                 root.classList.remove('light', 'dark');
-                root.classList.add(mediaQuery.matches ? 'dark' : 'light');
+                root.classList.add(systemTheme);
+                root.setAttribute(attribute, systemTheme);
             }
         };
 
         mediaQuery.addEventListener('change', handleChange);
         return () => mediaQuery.removeEventListener('change', handleChange);
-    }, [theme]);
+    }, [theme, attribute, enableSystem, mounted]);
 
-    // Save theme to localStorage
-    const value = {
-        theme,
-        setTheme: (theme: Theme) => {
-            localStorage?.setItem(storageKey, theme);
-            setTheme(theme);
-        },
-    };
+    const value = React.useMemo(
+        () => ({
+            theme,
+            setTheme: (newTheme: Theme) => {
+                if (enableSystem || newTheme !== 'system') {
+                    localStorage?.setItem(storageKey, newTheme);
+                    setTheme(newTheme);
+                }
+            },
+        }),
+        [theme, enableSystem, storageKey]
+    );
+
+    // Prevent hydration issues
+    if (!mounted) {
+        return null;
+    }
 
     return (
         <ThemeProviderContext.Provider {...props} value={value}>
@@ -88,12 +125,10 @@ export function ThemeProvider({
     );
 }
 
-// Custom hook to use theme
 export const useTheme = () => {
     const context = React.useContext(ThemeProviderContext);
-
-    if (context === undefined)
+    if (context === undefined) {
         throw new Error('useTheme must be used within a ThemeProvider');
-
+    }
     return context;
 };

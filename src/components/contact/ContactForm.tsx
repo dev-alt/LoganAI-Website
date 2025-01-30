@@ -111,7 +111,7 @@ export function ContactForm() {
                                 />
                             </FormControl>
                             <FormDescription>
-                                Include any specific technical requirements or challenges you'd like to discuss.
+                                Include any specific technical requirements or challenges you&#39;d like to discuss.
                             </FormDescription>
                             <FormMessage />
                         </FormItem>

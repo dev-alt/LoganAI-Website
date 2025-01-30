@@ -134,7 +134,7 @@ export function Technologies() {
                     <p className="text-muted-foreground">
                         Need a specific technology for your project?{' '}
                         <a href="/contact" className="text-primary hover:text-primary/80 font-medium">
-                            Let's discuss your requirements
+                            Let&#39;s discuss your requirements
                         </a>
                     </p>
                 </div>

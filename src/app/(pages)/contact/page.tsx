@@ -58,7 +58,7 @@ export default function ContactPage() {
                             Contact
                         </h1>
                         <p className="mt-6 text-lg leading-8 text-muted-foreground">
-                            Let's discuss your technical requirements and explore how we can help bring your ideas to life.
+                            Let&#39;s discuss your technical requirements and explore how we can help bring your ideas to life.
                         </p>
                     </div>
                 </div>
@@ -125,7 +125,7 @@ export default function ContactPage() {
                             </h2>
                             <p className="text-muted-foreground">
                                 We focus on technical excellence and practical solutions. Our expertise spans AI development,
-                                software engineering, and cloud architecture. Let's discuss how we can help with your specific
+                                software engineering, and cloud architecture. Let&#39;s discuss how we can help with your specific
                                 technical challenges.
                             </p>
                         </div>
