@@ -10,8 +10,9 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Github, Linkedin, Mail } from 'lucide-react';
+import { Mail} from 'lucide-react';
 import Link from 'next/link';
+import { SiGithub, SiLinkedin } from "react-icons/si";
 
 export const metadata: Metadata = {
     title: 'About',
@@ -102,12 +103,12 @@ export default function AboutPage() {
                                 <div className="flex gap-4 pt-4">
                                     <Button asChild variant="ghost" size="icon">
                                         <Link href="https://github.com" target="_blank">
-                                            <Github className="h-5 w-5" />
+                                            <SiGithub className="h-5 w-5" />
                                         </Link>
                                     </Button>
                                     <Button asChild variant="ghost" size="icon">
                                         <Link href="https://linkedin.com" target="_blank">
-                                            <Linkedin className="h-5 w-5" />
+                                            <SiLinkedin className="h-5 w-5" />
                                         </Link>
                                     </Button>
                                     <Button asChild variant="ghost" size="icon">
