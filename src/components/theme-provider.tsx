@@ -38,48 +38,66 @@ export function ThemeProvider({
         () => (localStorage?.getItem(storageKey) as Theme) || defaultTheme
     );
 
+    // Handle transitions
+    React.useEffect(() => {
+        if (disableTransitionOnChange) {
+            document.documentElement.classList.add('disable-transitions');
+            return () => {
+                document.documentElement.classList.remove('disable-transitions');
+            };
+        }
+    }, [disableTransitionOnChange]);
+
     React.useEffect(() => {
         const root = window.document.documentElement;
+        root.removeAttribute(attribute);
 
-        // Remove old classes
-        root.classList.remove('light', 'dark');
+        let currentTheme = theme;
 
-        // Add new class based on theme
-        if (theme === 'system') {
-            const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
-                .matches
+        // Handle system theme if enabled
+        if (currentTheme === 'system' && enableSystem) {
+            const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
                 ? 'dark'
                 : 'light';
-            root.classList.add(systemTheme);
-        } else {
-            root.classList.add(theme);
+            currentTheme = systemTheme;
         }
-    }, [theme]);
+
+        // Set the attribute with the current theme
+        root.setAttribute(attribute, currentTheme);
+    }, [theme, attribute, enableSystem]);
 
     // Watch for system theme changes
     React.useEffect(() => {
+        if (!enableSystem) return;
+
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
         const handleChange = () => {
             if (theme === 'system') {
                 const root = window.document.documentElement;
-                root.classList.remove('light', 'dark');
-                root.classList.add(mediaQuery.matches ? 'dark' : 'light');
+                const systemTheme = mediaQuery.matches ? 'dark' : 'light';
+                root.setAttribute(attribute, systemTheme);
             }
         };
 
         mediaQuery.addEventListener('change', handleChange);
         return () => mediaQuery.removeEventListener('change', handleChange);
-    }, [theme]);
+    }, [theme, attribute, enableSystem]);
 
-    // Save theme to localStorage
-    const value = {
-        theme,
-        setTheme: (theme: Theme) => {
-            localStorage?.setItem(storageKey, theme);
-            setTheme(theme);
-        },
-    };
+    const value = React.useMemo<ThemeProviderState>(
+        () => ({
+            theme,
+            setTheme: (newTheme: Theme) => {
+                // Only allow system theme if enableSystem is true
+                if (newTheme === 'system' && !enableSystem) {
+                    newTheme = 'dark';
+                }
+                localStorage?.setItem(storageKey, newTheme);
+                setTheme(newTheme);
+            },
+        }),
+        [theme, enableSystem, storageKey]
+    );
 
     return (
         <ThemeProviderContext.Provider {...props} value={value}>
@@ -92,8 +110,9 @@ export function ThemeProvider({
 export const useTheme = () => {
     const context = React.useContext(ThemeProviderContext);
 
-    if (context === undefined)
+    if (context === undefined) {
         throw new Error('useTheme must be used within a ThemeProvider');
+    }
 
     return context;
 };
