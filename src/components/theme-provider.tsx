@@ -53,12 +53,13 @@ export function ThemeProvider({
         const root = window.document.documentElement;
         if (disableTransitionOnChange) {
             root.classList.add('disable-transitions');
-            const cleanup = () => {
+
+            return () => {
                 root.classList.remove('disable-transitions');
             };
-            return cleanup;
         }
     }, [disableTransitionOnChange, mounted]);
+
 
     // Handle theme changes
     React.useEffect(() => {
@@ -70,16 +71,16 @@ export function ThemeProvider({
         let currentTheme = theme;
 
         if (currentTheme === 'system' && enableSystem) {
-            const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+            currentTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
                 ? 'dark'
                 : 'light';
-            currentTheme = systemTheme;
         }
 
         root.classList.remove('light', 'dark');
         root.classList.add(currentTheme);
         root.setAttribute(attribute, currentTheme);
     }, [theme, attribute, enableSystem, mounted]);
+
 
     // Watch for system theme changes
     React.useEffect(() => {
