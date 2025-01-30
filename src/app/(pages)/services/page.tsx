@@ -179,7 +179,7 @@ export default function ServicesPage() {
                         Ready to Start Your Project?
                     </h2>
                     <p className="mb-8 text-muted-foreground">
-                        Let's discuss how we can help you achieve your technical goals.
+                        Let&#39;s discuss how we can help you achieve your technical goals.
                     </p>
                     <Button asChild size="lg">
                         <Link href="/contact">Get in Touch</Link>

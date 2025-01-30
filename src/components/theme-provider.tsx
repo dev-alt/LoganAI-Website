@@ -34,69 +34,89 @@ export function ThemeProvider({
                                   disableTransitionOnChange = true,
                                   ...props
                               }: ThemeProviderProps) {
-    const [theme, setTheme] = React.useState<Theme>(
-        () => (localStorage?.getItem(storageKey) as Theme) || defaultTheme
-    );
+    const [mounted, setMounted] = React.useState(false);
+    const [theme, setTheme] = React.useState<Theme>(defaultTheme);
+
+    // Get initial theme from localStorage when component mounts
+    React.useEffect(() => {
+        const savedTheme = localStorage?.getItem(storageKey) as Theme;
+        if (savedTheme) {
+            setTheme(savedTheme);
+        }
+        setMounted(true);
+    }, [storageKey]);
 
     // Handle transitions
     React.useEffect(() => {
-        if (disableTransitionOnChange) {
-            document.documentElement.classList.add('disable-transitions');
-            return () => {
-                document.documentElement.classList.remove('disable-transitions');
-            };
-        }
-    }, [disableTransitionOnChange]);
+        if (!mounted) return;
 
+        const root = window.document.documentElement;
+        if (disableTransitionOnChange) {
+            root.classList.add('disable-transitions');
+            const cleanup = () => {
+                root.classList.remove('disable-transitions');
+            };
+            return cleanup;
+        }
+    }, [disableTransitionOnChange, mounted]);
+
+    // Handle theme changes
     React.useEffect(() => {
+        if (!mounted) return;
+
         const root = window.document.documentElement;
         root.removeAttribute(attribute);
 
         let currentTheme = theme;
 
-        // Handle system theme if enabled
         if (currentTheme === 'system' && enableSystem) {
-            currentTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+            const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
                 ? 'dark'
                 : 'light';
+            currentTheme = systemTheme;
         }
 
-        // Set the attribute with the current theme
+        root.classList.remove('light', 'dark');
+        root.classList.add(currentTheme);
         root.setAttribute(attribute, currentTheme);
-    }, [theme, attribute, enableSystem]);
+    }, [theme, attribute, enableSystem, mounted]);
 
     // Watch for system theme changes
     React.useEffect(() => {
-        if (!enableSystem) return;
+        if (!mounted || !enableSystem) return;
 
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
         const handleChange = () => {
             if (theme === 'system') {
                 const root = window.document.documentElement;
                 const systemTheme = mediaQuery.matches ? 'dark' : 'light';
+                root.classList.remove('light', 'dark');
+                root.classList.add(systemTheme);
                 root.setAttribute(attribute, systemTheme);
             }
         };
 
         mediaQuery.addEventListener('change', handleChange);
         return () => mediaQuery.removeEventListener('change', handleChange);
-    }, [theme, attribute, enableSystem]);
+    }, [theme, attribute, enableSystem, mounted]);
 
-    const value = React.useMemo<ThemeProviderState>(
+    const value = React.useMemo(
         () => ({
             theme,
             setTheme: (newTheme: Theme) => {
-                // Only allow system theme if enableSystem is true
-                if (newTheme === 'system' && !enableSystem) {
-                    newTheme = 'dark';
+                if (enableSystem || newTheme !== 'system') {
+                    localStorage?.setItem(storageKey, newTheme);
+                    setTheme(newTheme);
                 }
-                localStorage?.setItem(storageKey, newTheme);
-                setTheme(newTheme);
             },
         }),
         [theme, enableSystem, storageKey]
     );
+
+    // Prevent hydration issues
+    if (!mounted) {
+        return null;
+    }
 
     return (
         <ThemeProviderContext.Provider {...props} value={value}>
@@ -105,13 +125,10 @@ export function ThemeProvider({
     );
 }
 
-// Custom hook to use theme
 export const useTheme = () => {
     const context = React.useContext(ThemeProviderContext);
-
     if (context === undefined) {
         throw new Error('useTheme must be used within a ThemeProvider');
     }
-
     return context;
 };

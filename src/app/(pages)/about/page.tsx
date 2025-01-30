@@ -188,11 +188,11 @@ export default function AboutPage() {
                 {/* Contact CTA */}
                 <div className="mt-24 text-center">
                     <h2 className="text-2xl font-bold tracking-tight text-foreground mb-6">
-                        Let's Work Together
+                        Let&#39;s Work Together
                     </h2>
                     <p className="text-muted-foreground mb-8 mx-auto max-w-2xl">
                         Looking to implement AI solutions or need expert software development?
-                        Let's discuss how we can help bring your technical vision to life.
+                        Let&#39;s discuss how we can help bring your technical vision to life.
                     </p>
                     <Button asChild size="lg">
                         <Link href="/contact">Get in Touch</Link>

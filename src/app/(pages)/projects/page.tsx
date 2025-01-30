@@ -195,7 +195,7 @@ export default function ProjectsPage() {
                             Have a Project in Mind?
                         </h2>
                         <p className="text-muted-foreground mb-8">
-                            Let's discuss how we can help bring your ideas to life with our technical expertise.
+                            Let&#39;s discuss how we can help bring your ideas to life with our technical expertise.
                         </p>
                         <Button asChild size="lg">
                             <a href="/contact">Discuss Your Project</a>
