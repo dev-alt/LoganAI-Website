@@ -56,10 +56,9 @@ export function ThemeProvider({
 
         // Handle system theme if enabled
         if (currentTheme === 'system' && enableSystem) {
-            const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+            currentTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
                 ? 'dark'
                 : 'light';
-            currentTheme = systemTheme;
         }
 
         // Set the attribute with the current theme
